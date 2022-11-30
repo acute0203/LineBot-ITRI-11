@@ -168,8 +168,19 @@ def sendTextMessageToMe():
 def getNameEmojiMessage():
     lookUpStr = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
     productId = "5ac21a8c040ab15980c9b43f"
-    name = ""
+    name = "Roy"
     message = dict()
+    message['type'] = 'text'
+    message['text'] = "".join('$' for _ in range(len(name)))
+    emoji_list = list()
+    for n_char_index in range(len(name)):
+        emoji_list.append({
+         "index": n_char_index,
+         "emojiId": f"{lookUpStr.index(name[n_char_index]) + 1:03d}",
+         "productId": productId
+         })
+    message["emojis"] = emoji_list
+    print(emoji_list)
     return message
 
 
@@ -225,6 +236,7 @@ def getImageMessage(originalContentUrl):
 
 
 def replyMessage(payload):
+    print("payload:",payload)
     r = requests.post('https://api.line.me/v2/bot/message/reply', data=json.dumps(payload), headers=HEADER)
     print(r.content)
     return 'OK'
@@ -237,14 +249,16 @@ def pushMessage(payload):
 
 
 def getTotalSentMessageCount():
-    response = {}
-    return 0
+    response = requests.get('https://api.line.me/v2/bot/message/quota/consumption', headers=HEADER)
+    return F"您總共使用了 {response.json()['totalUsage']} 則"
 
 
 def getTodayCovid19Message():
-    date = ""
-    total_count = 0
-    count = 0
+    response = requests.get('https://covid-19.nchc.org.tw/api/covid19?CK=covid-19@nchc.org.tw&querydata=3001&limited=TWN', headers=HEADER)
+    data = response.json()[0]
+    date = data['a04']
+    total_count = data['a05']
+    count = data['a06']
     return F"日期：{date}, 人數：{count}, 確診總人數：{total_count}"
 
 
